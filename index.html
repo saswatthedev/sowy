@@ -1,1020 +1,747 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>a small Gift</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;700&family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>For Honey!</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+
     <style>
-        * {
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
         }
-
-        body {
-            background: #0a0a0a;
-            overflow: hidden;
-            color: #fff;
-            position: fixed;
-            width: 100%;
+        html, body {
             height: 100%;
-        }
-
-        #scene-container {
-            position: fixed;
             width: 100%;
-            height: 100%;
-            display: none;
-            opacity: 0;
-            transition: opacity 1s ease;
+            overscroll-behavior: none;
             touch-action: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: "Inter", sans-serif;
+            overflow: hidden;
+            background: #020204;
+            background-image:
+                radial-gradient(circle at 50% 35%, #141f2d 0%, transparent 65%),
+                linear-gradient(180deg, #000000 0%, #00040a 100%);
+            color: #eee;
+            /* Prevents automatic text inflation on mobile browsers */
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
-
-        /* Loading Screen */
-        .loading-screen {
+        #container {
             position: fixed;
-            width: 100%;
-            height: 100%;
-            background: #0a0a0a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.8s ease;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
         }
-
-        .loader {
-            width: 80px;
-            height: 80px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: var(--theme-color, #ff69b4);
+        .vignette {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9;
+            background: radial-gradient(circle at center, rgba(0,0,0,0) 65%, rgba(0,0,0,.5) 100%);
+        }
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            touch-action: none;
+        }
+        .instructions {
+            position: fixed;
+            left: 24px;
+            bottom: 24px;
+            padding: 10px 20px;
+            font-size: clamp(10px, 3vw, 12px);
+            text-align: left;
+            pointer-events: none;
+            color: #b0d0ff;
+            background: rgba(15, 18, 40, 0.25);
+            border: 1px solid rgba(70, 122, 255, 0.28);
+            border-radius: 12px;
+            backdrop-filter: blur(12px);
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,.45);
+        }
+        #morphButton {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            padding: 12px 30px;
+            font-size: clamp(12px, 3.5vw, 14px);
+            font-weight: 500;
+            color: rgba(220, 230, 255, 0.9);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            backdrop-filter: blur(10px) saturate(180%);
+            -webkit-backdrop-filter: blur(10px) saturate(180%);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            touch-action: manipulation;
+        }
+        #morphButton:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+            color: white;
+        }
+        #morphButton:active {
+            transform: translateX(-50%) scale(0.98);
+        }
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #020204;
+            z-index: 100;
+            transition: opacity 0.5s ease-out;
+            color: #b0d0ff;
+            font-size: clamp(14px, 4vw, 16px);
+            font-weight: 500;
+            text-align: center;
+        }
+        #loadingScreen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #b0d0ff;
+            border-top: 4px solid transparent;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            filter: drop-shadow(0 0 15px var(--theme-color, #ff69b4));
+            margin-bottom: 20px;
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
 
-        /* Welcome Screen */
-        .welcome-screen {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: #0a0a0a;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 900;
-            opacity: 0;
-            transition: opacity 0.8s ease;
-        }
-
-        .typing-container {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 120px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .typing-line {
-            position: relative;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .typing-text {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.6em;
-            text-align: center;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin: 0;
-            padding: 0;
-            line-height: 1.2;
-        }
-
-        .cursor {
-            display: inline-block;
-            width: 7px;
-            height: 60px;
-            background: var(--theme-color, #ff69b4);
-            margin-left: 8px;
-            animation: blink 1s infinite;
-            box-shadow: 0 0 15px var(--theme-color, #ff69b4);
-            border-radius: 2px;
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        @keyframes blink {
-            50% { opacity: 0; }
-        }
-
-        .color-palette {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .color-palette.active {
-            pointer-events: auto;
-        }
-
-        .color-button {
-            padding: 0.9rem 1.7rem;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid;
-            cursor: pointer;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border-radius: 30px;
-            position: relative;
-            overflow: hidden;
-            font-weight: 500;
-            backdrop-filter: blur(5px);
-        }
-
-        .color-button:before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: currentColor;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            transition: all 0.6s ease;
-        }
-
-        .color-button:hover, .color-button:active {
-            transform: translateY(-5px);
-            letter-spacing: 3px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .color-button:hover:before, .color-button:active:before {
-            width: 300px;
-            height: 300px;
-            opacity: 0.15;
-        }
-
-        /* Interface */
-        .interface {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0;
-            transition: opacity 1s ease;
-        }
-
-        .interface p {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            font-weight: 300;
-            pointer-events: none;
-            padding: 10px 20px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 20px;
-            backdrop-filter: blur(5px);
-            transition: opacity 0.3s ease;
-        }
-
-        .meaning-button {
-            position: fixed;
-            bottom: 40px;
-            left: 50%;
-            z-index: 1000;
-            transform: translateX(-50%);
-            padding: 15px 30px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--theme-color, #ff69b4);
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 300;
-            font-size: 1rem;
-            pointer-events: auto;
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .meaning-button:hover, .meaning-button:active {
-            transform: translateX(-50%) translateY(-3px);
-            letter-spacing: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 5000;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            backdrop-filter: blur(3px);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(10, 10, 10, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 20px;
-            z-index: 5001;
-            max-width: 500px;
-            width: 90%;
-            opacity: 0;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(10px);
-        }
-
-        .modal.active {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-        }
-
-        .modal h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--theme-color, #ff69b4);
-            font-size: 2.2em;
-            margin-bottom: 20px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        .modal p {
-            color: rgba(255, 255, 255, 0.9);
-            line-height: 1.8;
-            margin-bottom: 20px;
-            font-size: 1.1em;
-        }
-
-        .close-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: transparent;
-            border: none;
-            color: var(--theme-color, #ff69b4);
-            font-size: 1.8em;
-            cursor: pointer;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            z-index: 5002;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .close-button:hover, .close-button:active {
-            transform: rotate(90deg);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Media Queries */
-        @media (max-width: 768px) {
-            .typing-text {
-                font-size: 2.4em;
-            }
-
-            .color-palette {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.5rem;
-                padding: 1.5rem;
-            }
-
-            .color-button {
-                padding: 1rem 2rem;
-                font-size: 1rem;
-            }
-
-            .typing-container {
-                margin-bottom: 3rem;
-                padding: 1.5rem;
-            }
-
-            .interface p {
-                font-size: 0.8rem;
+        /* --- Improved Mobile Styles --- */
+        @media (max-width: 600px) {
+            .instructions {
+                /* Center instructions and move them above the button for a cleaner mobile layout */
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 100px;
                 padding: 8px 16px;
+                text-align: center;
+                width: max-content;
             }
-
-            .modal {
-                padding: 20px;
-                width: 80%;
-            }
-
-            .modal h2 {
-                font-size: 1.6em;
-            }
-
-            .modal p {
-                font-size: 1em;
-            }
-
-            .meaning-button {
+            #morphButton {
+                /* Give button more space from the bottom and a larger tap area */
                 bottom: 30px;
-                padding: 12px 24px;
-                font-size: 0.9rem;
+                padding: 12px 30px;
+                font-size: clamp(14px, 4vw, 15px);
             }
         }
 
-        @media (max-width: 480px) {
-            .typing-text {
-                font-size: 2em;
+        @media (pointer: coarse) {
+            #morphButton {
+                transform: translateX(-50%) scale(1.1);
             }
-
-            .color-palette {
-                grid-template-columns: 1fr;
-                width: 90%;
-            }
-
-            .color-button {
-                padding: 0.8rem 1.6rem;
-            }
-
-            .modal {
-                padding: 15px;
-                width: 70%;
-            }
-
-            .modal h2 {
-                font-size: 1.4em;
-            }
-
-            .modal p {
-                font-size: 0.9em;
-            }
-
-            .close-button {
-                top: 10px;
-                right: 10px;
+            #morphButton:active {
+                transform: translateX(-50%) scale(1.05);
             }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div class="loading-screen" id="loading-screen">
-        <div class="loader"></div>
+    <div id="loadingScreen">
+        <div class="spinner"></div>
+        <span>Loading Universe...</span>
     </div>
-
-    <!-- Welcome Screen -->
-    <div class="welcome-screen" id="welcome-screen">
-        <div class="typing-container">
-            <div class="typing-text" id="typing-text"></div>
-            <span class="cursor"></span>
-        </div>
-        <div class="color-palette" id="color-palette">
-            <button class="color-button" style="color: #ff69b4; border-color: #ff69b4;" data-color="#ff69b4">Pink</button>
-            <button class="color-button" style="color: #4CAF50; border-color: #4CAF50;" data-color="#4CAF50">Green</button>
-            <button class="color-button" style="color: #2196F3; border-color: #2196F3;" data-color="#2196F3">Blue</button>
-            <button class="color-button" style="color: #FFC107; border-color: #FFC107;" data-color="#FFC107">Yellow</button>
-            <button class="color-button" style="color: #9C27B0; border-color: #9C27B0;" data-color="#9C27B0">Purple</button>
-            <button class="color-button" style="color: #FF5722; border-color: #FF5722;" data-color="#FF5722">Orange</button>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div id="scene-container"></div>
-
-    <!-- Interface -->
-    <div class="interface" id="interface">
-        <button class="meaning-button" id="meaning-button">Discover Meaning</button>
-        <p>Use touch to move around.</p>
-    </div>
-
-    <!-- Modal -->
-    <div class="modal-overlay" id="modal-overlay"></div>
-    <div class="modal" id="modal">
-        <h2>Mayette</h2>
-        <p>Mayette is a charming name often heard in the Philippines, carrying a sweet and gentle vibe. It's likely a variation of "May" or "Mariette," meaning "beloved" or "wished-for child" in some origins, with a touch of Filipino flair.</p>
-        <p>For a kind-hearted girl from the Philippines, Mayette fits perfectly, reflecting her warmth and cheerful spirit. It's a name that feels friendly and full of love, just like her.</p>
-        <h3><strong>Made by Saswat :)</strong></h3>
-        <button class="close-button" id="close-modal">×</button>
-    </div>
-
-    <script>
-        // Global variables for scene management
-        let scene, camera, renderer;
-        let text, particles = [];
-        let autoRotate = true;
-        let cameraRotationRadius = 20;
-        let cameraHeight = 0;
-        let cameraAngle = 0;
-        let targetCameraAngle = 0;
-        let cameraSpeed = 0.009;
-        let isDragging = false;
-        let mouseStart = { x: 0, y: 0 };
-        let selectedColor = '#ff69b4'; // Default color
-        let lastPinchDistance = 0;
-
-        // Configuration
-        const config = {
-            welcomeText: "Welcome Mayette,\nchoose your fav color:",
-            typingInitialDelay: 1000,
-            minTypingDelay: 10,
-            maxTypingDelay: 100,
-            showColorPaletteDelay: 500,
-            mobile: {
-                cameraRotationRadius: 40,
-                minRadius: 25,
-                maxRadius: 50
-            },
-            desktop: {
-                cameraRotationRadius: 20,
-                minRadius: 10,
-                maxRadius: 30
-            }
-        };
-
-        // Device detection
-        function isMobile() {
-            return window.innerWidth <= 768 || ('ontouchstart' in window);
-        }
-
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', initializeApplication);
-
-        function initializeApplication() {
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-            document.body.style.height = '100%';
-
-            document.addEventListener('touchstart', (e) => {
-                if (e.touches.length > 1) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-
-            document.body.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 1 && (e.target.id === 'scene-container' || e.target.tagName === 'CANVAS')) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-
-            setupModalHandlers();
-
-            setTimeout(() => {
-                document.getElementById('loading-screen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    showWelcomeScreen();
-                }, 500);
-            }, 1000);
-        }
-
-        function showWelcomeScreen() {
-            const welcomeScreen = document.getElementById('welcome-screen');
-            const typingText = document.getElementById('typing-text');
-            const colorPalette = document.getElementById('color-palette');
-
-            welcomeScreen.style.display = 'flex';
-            setTimeout(() => welcomeScreen.style.opacity = '1', 50);
-
-            let charIndex = 0;
-            typingText.style.opacity = '1';
-            typingText.style.transform = 'translateY(0)';
-
-            function typeNextChar() {
-                if (charIndex < config.welcomeText.length) {
-                    typingText.textContent = config.welcomeText.slice(0, charIndex + 1);
-                    charIndex++;
-                    setTimeout(typeNextChar, Math.random() * 90 + 10);
-                } else {
-                    setTimeout(() => {
-                        colorPalette.style.opacity = '1';
-                        colorPalette.style.transform = 'translateY(0)';
-                        colorPalette.classList.add('active');
-                    }, 500);
-                }
-            }
-
-            setTimeout(typeNextChar, 1000);
-        }
-
-        function initScene() {
-            const loadingScreen = document.getElementById('loading-screen');
-            loadingScreen.style.display = 'flex';
-            loadingScreen.style.opacity = '1';
-
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.015);
-
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-            renderer = new THREE.WebGLRenderer({ 
-                antialias: true,
-                alpha: true
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.setClearColor(0x000000, 1);
-
-            const container = document.getElementById('scene-container');
-            container.appendChild(renderer.domElement);
-
-            cameraRotationRadius = isMobile() ? config.mobile.cameraRotationRadius : config.desktop.cameraRotationRadius;
-
-            createBackground();
-            setupLighting();
-            camera.position.z = cameraRotationRadius;
-            loadText();
-            setupEventListeners();
-            optimizeForDevice();
-
-            container.style.display = 'block';
-            setTimeout(() => {
-                container.style.opacity = '1';
-                document.getElementById('interface').style.opacity = '1';
-            }, 100);
-
-            setTimeout(() => {
-                loadingScreen.style.opacity = '0';
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                }, 500);
-            }, 1000);
-        }
-
-        function createBackground() {
-            const geometry = new THREE.SphereGeometry(100, 64, 64);
-            const vertexShader = `
-                varying vec3 vPosition;
-                void main() {
-                    vPosition = position;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-            `;
-
-            const fragmentShader = `
-                varying vec3 vPosition;
-                void main() {
-                    float y = normalize(vPosition).y * 0.5 + 0.5;
-                    vec3 skyBlue = vec3(0.1, 0.2, 0.3);
-                    vec3 black = vec3(0.05, 0.05, 0.05);
-                    gl_FragColor = vec4(mix(black, skyBlue, y * 0.7), 1.0);
-                }
-            `;
-
-            const material = new THREE.ShaderMaterial({
-                side: THREE.BackSide,
-                vertexShader,
-                fragmentShader
-            });
-
-            const backgroundSphere = new THREE.Mesh(geometry, material);
-            scene.add(backgroundSphere);
-
-            const starCount = isMobile() ? 2500 : 5000;
-            const starGeometry = new THREE.BufferGeometry();
-            const starVertices = [];
-            for (let i = 0; i < starCount; i++) {
-                const r = 90;
-                const theta = 2 * Math.PI * Math.random();
-                const phi = Math.acos(2 * Math.random() - 1);
-                const x = r * Math.sin(phi) * Math.cos(theta);
-                const y = r * Math.sin(phi) * Math.sin(theta);
-                const z = r * Math.cos(phi);
-                starVertices.push(x, y, z);
-            }
-            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-
-            const starMaterial = new THREE.PointsMaterial({
-                color: 0xFFFFFF,
-                size: 0.25,
-                transparent: true,
-                opacity: 0.9,
-                sizeAttenuation: true
-            });
-
-            const stars = new THREE.Points(starGeometry, starMaterial);
-            scene.add(stars);
-        }
-
-        function setupLighting() {
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-
-            const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-            mainLight.position.set(1, 1, 1);
-            scene.add(mainLight);
-
-            const backLight = new THREE.DirectionalLight(0xffffff, 0.7);
-            backLight.position.set(-1, 1, -1);
-            scene.add(backLight);
-
-            const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
-            rimLight.position.set(0, 0, -1);
-            scene.add(rimLight);
-        }
-
-        function loadText() {
-            const loader = new THREE.FontLoader();
-            loader.load('https://threejs.org/examples/fonts/optimer_bold.typeface.json', function(font) {
-                const textGeometry = new THREE.TextGeometry('Mayette :)', {
-                    font: font,
-                    size: 4,
-                    height: 1.5,
-                    curveSegments: 32,
-                    bevelEnabled: true,
-                    bevelThickness: 0.3,
-                    bevelSize: 0.15,
-                    bevelOffset: 0,
-                    bevelSegments: 8
-                });
-
-                const frontMaterial = new THREE.MeshPhysicalMaterial({
-                    color: selectedColor,
-                    emissive: selectedColor,
-                    emissiveIntensity: 0.4,
-                    metalness: 0.9,
-                    roughness: 0.1,
-                    reflectivity: 1
-                });
-
-                const sideMaterial = new THREE.MeshPhysicalMaterial({
-                    color: selectedColor,
-                    emissive: selectedColor,
-                    emissiveIntensity: 0.2,
-                    metalness: 1.6,
-                    roughness: 0.4,
-                    reflectivity: 0.5
-                });
-
-                text = new THREE.Mesh(textGeometry, [frontMaterial, sideMaterial]);
-                textGeometry.center();
-                scene.add(text);
-
-                createParticles();
-                animate();
-            });
-        }
-
-        class Particle {
-            constructor() {
-                const geometry = new THREE.SphereGeometry(0.05, 8, 8);
-                const material = new THREE.MeshPhysicalMaterial({
-                    color: selectedColor,
-                    emissive: selectedColor,
-                    emissiveIntensity: 0.8,
-                    metalness: 0.5,
-                    roughness: 0.5,
-                    transparent: true,
-                    opacity: Math.random() * 0.5 + 0.3
-                });
-
-                this.mesh = new THREE.Mesh(geometry, material);
-                this.reset();
-                scene.add(this.mesh);
-            }
-
-            reset() {
-                const radius = Math.random() * 20 + 10;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.random() * Math.PI * 2;
-
-                this.mesh.position.x = radius * Math.sin(theta) * Math.cos(phi);
-                this.mesh.position.y = radius * Math.sin(theta) * Math.sin(phi);
-                this.mesh.position.z = radius * Math.cos(theta);
-
-                this.velocity = new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.08,
-                    (Math.random() - 0.5) * 0.08,
-                    (Math.random() - 0.5) * 0.08
-                );
-
-                this.mesh.scale.setScalar(Math.random() * 0.5 + 0.5);
-            }
-
-            update() {
-                this.mesh.position.add(this.velocity);
-                if (this.mesh.position.length() > 30) {
-                    this.reset();
-                }
-            }
-        }
-
-        function createParticles() {
-            particles.forEach(particle => scene.remove(particle.mesh));
-            particles = [];
-
-            const particleCount = isMobile() ? 100 : 200;
-            for (let i = 0; i < particleCount; i++) {
-                particles.push(new Particle());
-            }
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            if (!isDragging) {
-                targetCameraAngle += cameraSpeed;
-            }
-
-            cameraAngle += (targetCameraAngle - cameraAngle) * 0.1;
-
-            const sinAngle = Math.sin(cameraAngle);
-            const cosAngle = Math.cos(cameraAngle);
-
-            camera.position.x = cameraRotationRadius * sinAngle;
-            camera.position.z = cameraRotationRadius * cosAngle;
-            camera.position.y = cameraHeight;
-            camera.lookAt(0, 0, 0);
-
-            if (text) {
-                text.rotation.y = cameraAngle * 0.5;
-                text.position.y = Math.sin(Date.now() * 0.0005) * 0.2;
-            }
-
-            particles.forEach(particle => particle.update());
-            renderer.render(scene, camera);
-        }
-
-        function setupEventListeners() {
-            window.addEventListener('resize', onWindowResize);
-
-            window.addEventListener('mousedown', onPointerDown);
-            window.addEventListener('mousemove', onPointerMove);
-            window.addEventListener('mouseup', onPointerUp);
-
-            window.addEventListener('touchstart', onPointerDown, { passive: false });
-            window.addEventListener('touchmove', onPointerMove, { passive: false });
-            window.addEventListener('touchend', onPointerUp, { passive: false });
-
-            window.addEventListener('wheel', onWheel, { passive: false });
-        }
-
-        function setupModalHandlers() {
-            const isMobileDevice = isMobile();
-            const eventType = isMobileDevice ? 'touchend' : 'click';
-
-            const meaningBtn = document.getElementById('meaning-button');
-            const closeBtn = document.getElementById('close-modal');
-            const overlay = document.getElementById('modal-overlay');
-            const modal = document.getElementById('modal');
-
-            meaningBtn.addEventListener(eventType, openModal);
-            closeBtn.addEventListener(eventType, closeModal);
-            overlay.addEventListener(eventType, closeModal);
-
-            if (isMobileDevice) {
-                ['touchstart', 'touchmove', 'touchend'].forEach(event => {
-                    modal.addEventListener(event, (e) => e.stopPropagation(), false);
-                });
-            }
-        }
-
-        function openModal(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const overlay = document.getElementById('modal-overlay');
-            const modal = document.getElementById('modal');
-
-            overlay.style.display = 'block';
-            modal.style.display = 'block';
-
-            void modal.offsetWidth;
-            void overlay.offsetWidth;
-
-            modal.classList.add('active');
-            overlay.classList.add('active');
-        }
-
-        function closeModal(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            const modal = document.getElementById('modal');
-            const overlay = document.getElementById('modal-overlay');
-
-            modal.classList.remove('active');
-            overlay.classList.remove('active');
-
-            setTimeout(() => {
-                modal.style.display = 'none';
-                overlay.style.display = 'none';
-            }, 300);
-        }
-
-        function onPointerDown(event) {
-            if (event.touches && event.touches.length === 2) {
-                lastPinchDistance = getPinchDistance(event.touches[0], event.touches[1]);
-                return;
-            }
-
-            if (event.target.id === 'meaning-button' || 
-                event.target.id === 'modal' || 
-                event.target.id === 'modal-overlay' ||
-                event.target.id === 'close-modal' ||
-                event.target.closest('.modal')) {
-                return;
-            }
-
-            event.preventDefault();
-            isDragging = true;
-            const point = event.touches ? event.touches[0] : event;
-            mouseStart.x = point.clientX;
-            mouseStart.y = point.clientY;
-        }
-
-        const controlSensitivity = {
-            mobile: {
-                rotation: 0.06,
-                height: 0.25
-            },
-            desktop: {
-                rotation: 0.015,
-                height: 0.08
-            }
-        };
-
-        function onPointerMove(event) {
-            if (event.touches && event.touches.length === 2) {
-                event.preventDefault();
-
-                const currentPinchDistance = getPinchDistance(event.touches[0], event.touches[1]);
-                const pinchDelta = currentPinchDistance - lastPinchDistance;
-
-                if (Math.abs(pinchDelta) > 1) {
-                    const limits = isMobile() ? config.mobile : config.desktop;
-                    const zoomFactor = -pinchDelta * 0.03;
-
-                    cameraRotationRadius = Math.max(
-                        limits.minRadius,
-                        Math.min(limits.maxRadius, cameraRotationRadius + zoomFactor)
-                    );
-
-                    lastPinchDistance = currentPinchDistance;
-                }
-                return;
-            }
-
-            if (!isDragging) return;
-            event.preventDefault();
-
-            const point = event.touches ? event.touches[0] : event;
-            const deltaX = point.clientX - mouseStart.x;
-            const deltaY = point.clientY - mouseStart.y;
-
-            const sensitivity = event.touches ? controlSensitivity.mobile : controlSensitivity.desktop;
-
-            targetCameraAngle = cameraAngle - deltaX * sensitivity.rotation;
-            cameraHeight = Math.max(-10, Math.min(10, cameraHeight + deltaY * sensitivity.height));
-
-            mouseStart.x = point.clientX;
-            mouseStart.y = point.clientY;
-        }
-
-        function onPointerUp(event) {
-            if (event.target.id === 'meaning-button' || 
-                event.target.id === 'modal' || 
-                event.target.id === 'modal-overlay' ||
-                event.target.id === 'close-modal' ||
-                event.target.closest('.modal')) {
-                return;
-            }
-
-            event.preventDefault();
-            isDragging = false;
-        }
-
-        function getPinchDistance(touch1, touch2) {
-            const dx = touch1.clientX - touch2.clientX;
-            const dy = touch1.clientY - touch2.clientY;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-
-        function onWheel(event) {
-            event.preventDefault();
-            const limits = isMobile() ? config.mobile : config.desktop;
-            cameraRotationRadius = Math.max(
-                limits.minRadius,
-                Math.min(limits.maxRadius, cameraRotationRadius - event.deltaY * 0.01)
-            );
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function optimizeForDevice() {
-            if (isMobile()) {
-                const particleCount = 100;
-                particles.forEach(particle => scene.remove(particle.mesh));
-                particles = [];
-                for (let i = 0; i < particleCount; i++) {
-                    particles.push(new Particle());
-                }
-
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                cameraRotationRadius = config.mobile.cameraRotationRadius;
-            }
-        }
-
-        document.querySelectorAll('.color-button').forEach(button => {
-            button.addEventListener('click', function() {
-                selectedColor = this.dataset.color;
-                document.documentElement.style.setProperty('--theme-color', selectedColor);
-
-                const welcomeScreen = document.getElementById('welcome-screen');
-                welcomeScreen.style.opacity = '0';
-                setTimeout(() => {
-                    welcomeScreen.style.display = 'none';
-                    initScene();
-                }, 500);
-            });
-        });
-
-        document.addEventListener('contextmenu', function(event) {
-            event.preventDefault();
-        });
-
-        document.addEventListener('keydown', function(event) {
-            if (event.ctrlKey || event.metaKey) {
-                event.preventDefault();
-            }
-        });
+    <div id="container"></div>
+    <div class="vignette"></div>
+    <div class="instructions">Drag or swipe to explore</div>
+    <button id="morphButton">CLICK HERE!</button>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
+      }
+    }
     </script>
 
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+    import { AfterimagePass } from "three/addons/postprocessing/AfterimagePass.js";
+    import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+    import { FontLoader } from "three/addons/loaders/FontLoader.js";
+    import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
+    import { MeshSurfaceSampler } from "three/addons/math/MeshSurfaceSampler.js";
+
+    const PARTICLE_COUNT = 5000;
+    const SPARK_COUNT = 600;
+    const STAR_COUNT = 3000;
+
+    let scene, camera, renderer, composer, controls;
+    let particles, sparkles, stars;
+    let clock = new THREE.Clock();
+    let currentPattern = 0, isTrans = false, prog = 0;
+    const morphSpeed = 0.03;
+    let font;
+    let isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    function normalise(points, size) {
+        if (points.length === 0) return [];
+        const box = new THREE.Box3().setFromPoints(points);
+        const maxDim = Math.max(...box.getSize(new THREE.Vector3()).toArray()) || 1;
+        const centre = box.getCenter(new THREE.Vector3());
+        return points.map(p => p.clone().sub(centre).multiplyScalar(size / maxDim));
+    }
+
+    function createTextShape(text, n, particleSize) {
+        if (!font) return [];
+
+        const geometry = new TextGeometry(text, {
+            font: font,
+            size: 30,
+            depth: 2,
+            curveSegments: 8,
+            bevelEnabled: true,
+            bevelThickness: 1,
+            bevelSize: 0.5,
+            bevelSegments: 4
+        });
+        geometry.center();
+
+        const sampler = new MeshSurfaceSampler(new THREE.Mesh(geometry)).build();
+        const pts = [];
+        const tempPosition = new THREE.Vector3();
+
+        for (let i = 0; i < n; i++) {
+            sampler.sample(tempPosition);
+            pts.push(tempPosition.clone());
+        }
+
+        geometry.dispose();
+        return normalise(pts, particleSize);
+    }
+
+    function glaizaShape(n, time = 0) {
+        return createTextShape("GLY", n, 80);
+    }
+
+    function isCoolShape(n, time = 0) {
+        return createTextShape("am sorry", n, 80);
+    }
+
+    function starShape(n, time = 0) {
+        const pts = [];
+        const depth = 8;
+        const numPoints = 5;
+        const innerN = Math.floor(n * 0.4);
+        const outerN = n - innerN;
+        const twist = Math.sin(time * 0.3) * 0.1;
+
+        const generateStarOutline = (count, outerR, innerR, d, jitter, layerTwist) => {
+            const layerPts = [];
+            const vertices = [];
+            for (let i = 0; i < numPoints * 2; i++) {
+                const radius = i % 2 === 0 ? outerR : innerR;
+                let angle = (i / (numPoints * 2)) * Math.PI * 2;
+                angle += layerTwist;
+                vertices.push(new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius, 0));
+            }
+
+            for (let i = 0; i < count; i++) {
+                const edgeIndex = Math.floor(Math.random() * numPoints * 2);
+                const v1 = vertices[edgeIndex];
+                const v2 = vertices[(edgeIndex + 1) % (numPoints * 2)];
+                const pointOnEdge = new THREE.Vector3().lerpVectors(v1, v2, Math.random());
+
+                pointOnEdge.x += (Math.random() - 0.5) * jitter;
+                pointOnEdge.y += (Math.random() - 0.5) * jitter;
+                pointOnEdge.z = (Math.random() - 0.5) * d;
+                layerPts.push(pointOnEdge);
+            }
+            return layerPts;
+        }
+
+        const innerPts = generateStarOutline(innerN, 12, 6, depth * 0.8, 2, twist);
+        const outerPts = generateStarOutline(outerN, 25, 12, depth, 3, -twist * 0.5);
+
+        pts.push(...innerPts, ...outerPts);
+        return normalise(pts, 55);
+    }
+
+    function heartShape(n, time = 0) {
+        const pts = [];
+        const depth = 12;
+        const innerN = Math.floor(n * 0.5);
+        const outerN = n - innerN;
+        const beat = 1.0 + Math.pow(Math.sin(time * 1.5) * 0.5 + 0.5, 4.0) * 0.1;
+
+        const generateHeartOutline = (count, scale, jitter) => {
+            const layerPts = [];
+            const path = [];
+            const pathSteps = 200;
+            for (let i = 0; i < pathSteps; i++) {
+                const t = (i / pathSteps) * 2 * Math.PI;
+                const x = scale * 16 * Math.pow(Math.sin(t), 3);
+                const y = scale * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                path.push(new THREE.Vector3(x, y, 0));
+            }
+
+            for (let i = 0; i < count; i++) {
+                const pt = path[Math.floor(Math.random() * path.length)].clone();
+                pt.x += (Math.random() - 0.5) * jitter;
+                pt.y += (Math.random() - 0.5) * jitter;
+                pt.z = (Math.random() - 0.5) * depth;
+                layerPts.push(pt);
+            }
+            return layerPts;
+        }
+
+        const innerPts = generateHeartOutline(innerN, 1.1 * beat, 2);
+        const outerPts = generateHeartOutline(outerN, 2.2 * beat, 3);
+
+        pts.push(...innerPts, ...outerPts);
+        return normalise(pts, 50);
+    }
+
+    function torusKnotShape(n, time = 0) {
+        const pts = [];
+        const p = 2, q = 3;
+        const innerN = Math.floor(n * 0.4);
+        const outerN = n - innerN;
+        const revolve = time * 0.1;
+
+        const generateKnotOutline = (count, radius, tubeRadius, jitter) => {
+            const layerPts = [];
+            const path = [];
+            const pathSteps = 400;
+
+            for (let i = 0; i < pathSteps; i++) {
+                const t = (i / pathSteps) * 2 * Math.PI + revolve;
+                const r = Math.cos(q * t) + radius;
+                const x = r * Math.cos(p * t);
+                const y = r * Math.sin(p * t);
+                const z = -Math.sin(q * t);
+                path.push(new THREE.Vector3(x, y, z).multiplyScalar(10));
+            }
+
+            for (let i = 0; i < count; i++) {
+                const pt = path[Math.floor(Math.random() * path.length)].clone();
+                pt.x += (Math.random() - 0.5) * jitter;
+                pt.y += (Math.random() - 0.5) * jitter;
+                pt.z += (Math.random() - 0.5) * jitter;
+                layerPts.push(pt);
+            }
+            return layerPts;
+        }
+
+        const innerPts = generateKnotOutline(innerN, 2, 0.4, 2);
+        const outerPts = generateKnotOutline(outerN, 3, 0.6, 3);
+
+        pts.push(...innerPts, ...outerPts);
+        return normalise(pts, 60);
+    }
+
+    const PATTERNS = [glaizaShape, isCoolShape, starShape, heartShape, torusKnotShape];
+    let basePositions = [];
+
+    function createStars() {
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(STAR_COUNT * 3);
+        const col = new Float32Array(STAR_COUNT * 3);
+        const size = new Float32Array(STAR_COUNT);
+        const rnd = new Float32Array(STAR_COUNT);
+        const R = 900;
+        for (let i = 0; i < STAR_COUNT; i++) {
+            const i3 = i * 3, θ = Math.random() * 2 * Math.PI, φ = Math.acos(2 * Math.random() - 1), r = R * Math.cbrt(Math.random());
+            pos[i3] = r * Math.sin(φ) * Math.cos(θ);
+            pos[i3 + 1] = r * Math.sin(φ) * Math.sin(θ);
+            pos[i3 + 2] = r * Math.cos(φ);
+            const c = new THREE.Color().setHSL(Math.random() * 0.6, 0.3 + 0.3 * Math.random(), 0.55 + 0.35 * Math.random());
+            col[i3] = c.r; col[i3 + 1] = c.g; col[i3 + 2] = c.b;
+            size[i] = 0.25 + Math.pow(Math.random(), 4) * 2.1;
+            rnd[i] = Math.random() * Math.PI * 2;
+        }
+        geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+        geo.setAttribute("size", new THREE.BufferAttribute(size, 1));
+        geo.setAttribute("random", new THREE.BufferAttribute(rnd, 1));
+        const mat = new THREE.ShaderMaterial({
+            uniforms: { time: { value: 0 } },
+            vertexShader: `
+                attribute float size;
+                attribute float random;
+                varying vec3 vColor;
+                varying float vRnd;
+                void main() {
+                    vColor = color;
+                    vRnd = random;
+                    vec4 mv = modelViewMatrix * vec4(position, 1.);
+                    gl_PointSize = size * (250. / -mv.z);
+                    gl_Position = projectionMatrix * mv;
+                }`,
+            fragmentShader: `
+                uniform float time;
+                varying vec3 vColor;
+                varying float vRnd;
+                void main() {
+                    vec2 uv = gl_PointCoord - 0.5;
+                    float d = length(uv);
+                    float a = 1.0 - smoothstep(0.4, 0.5, d);
+                    a *= 0.7 + 0.3 * sin(time * (0.6 + vRnd * 0.3) + vRnd * 5.0);
+                    if (a < 0.02) discard;
+                    gl_FragColor = vec4(vColor, a);
+                }`,
+            transparent: true,
+            depthWrite: false,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending
+        });
+        return new THREE.Points(geo, mat);
+    }
+
+    function makeParticles(count, palette) {
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(count * 3);
+        const col = new Float32Array(count * 3);
+        const size = new Float32Array(count);
+        const rnd = new Float32Array(count * 3);
+        for (let i = 0; i < count; i++) {
+            const i3 = i * 3, base = palette[Math.random() * palette.length | 0], hsl = { h: 0, s: 0, l: 0 };
+            base.getHSL(hsl);
+            hsl.h += (Math.random() - 0.5) * 0.05;
+            hsl.s = Math.min(1, Math.max(0.7, hsl.s + (Math.random() - 0.5) * 0.3));
+            hsl.l = Math.min(0.9, Math.max(0.5, hsl.l + (Math.random() - 0.5) * 0.4));
+            const c = new THREE.Color().setHSL(hsl.h, hsl.s, hsl.l);
+            col[i3] = c.r; col[i3 + 1] = c.g; col[i3 + 2] = c.b;
+            size[i] = 1.0 + Math.random() * 1.5;
+            rnd[i3] = Math.random() * 10;
+            rnd[i3 + 1] = Math.random() * Math.PI * 2;
+            rnd[i3 + 2] = 0.5 + 0.5 * Math.random();
+        }
+        geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+        geo.setAttribute("size", new THREE.BufferAttribute(size, 1));
+        geo.setAttribute("random", new THREE.BufferAttribute(rnd, 3));
+        geo.setAttribute("basePosition", new THREE.BufferAttribute(pos.slice(), 3));
+
+        const mat = new THREE.ShaderMaterial({
+            uniforms: { time: { value: 0 }, hueSpeed: { value: 0.12 } },
+            vertexShader: `
+                uniform float time;
+                attribute float size;
+                attribute vec3 random;
+                varying vec3 vCol;
+                varying float vR;
+                void main() {
+                    vCol = color;
+                    vR = random.z;
+                    vec3 p = position;
+                    float t = time * 0.25 * random.z;
+                    float ax = t + random.y, ay = t * 0.75 + random.x;
+                    float amp = (0.6 + sin(random.x + t * 0.6) * 0.3) * random.z;
+                    p.x += sin(ax + p.y * 0.06 + random.x * 0.1) * amp;
+                    p.y += cos(ay + p.z * 0.06 + random.y * 0.1) * amp;
+                    p.z += sin(ax * 0.85 + p.x * 0.06 + random.z * 0.1) * amp;
+                    vec4 mv = modelViewMatrix * vec4(p, 1.);
+                    float pulse = 0.9 + 0.1 * sin(time * 1.15 + random.y);
+                    gl_PointSize = size * pulse * (350. / -mv.z);
+                    gl_Position = projectionMatrix * mv;
+                }`,
+            fragmentShader: `
+                uniform float time;
+                uniform float hueSpeed;
+                varying vec3 vCol;
+                varying float vR;
+                vec3 hueShift(vec3 c, float h) {
+                    const vec3 k = vec3(0.57735);
+                    float cosA = cos(h);
+                    float sinA = sin(h);
+                    return c * cosA + cross(k, c) * sinA + k * dot(k, c) * (1.0 - cosA);
+                }
+                void main() {
+                    float d = length(gl_PointCoord - 0.5);
+                    float core = smoothstep(0.15, 0.0, d);
+                    float halo = smoothstep(0.5, 0.2, d);
+                    float alpha = (core * 0.8) + (halo * 0.2);
+                    alpha *= 0.8 + 0.2 * sin(time * 5.0 * vR + vR * 10.0);
+                    vec3 color = hueShift(vCol, time * hueSpeed);
+                    vec3 finalColor = mix(color, vec3(1.0, 1.0, 1.0), core * 0.6);
+                    if (alpha < 0.01) discard;
+                    gl_FragColor = vec4(finalColor, alpha);
+                }`,
+            transparent: true,
+            depthWrite: false,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending
+        });
+        return new THREE.Points(geo, mat);
+    }
+
+    function createSparkles(count) {
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(count * 3);
+        const size = new Float32Array(count);
+        const rnd = new Float32Array(count * 3);
+        for (let i = 0; i < count; i++) {
+            size[i] = 0.5 + Math.random() * 0.8;
+            rnd[i * 3] = Math.random() * 10;
+            rnd[i * 3 + 1] = Math.random() * Math.PI * 2;
+            rnd[i * 3 + 2] = 0.5 + 0.5 * Math.random();
+        }
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute('size', new THREE.BufferAttribute(size, 1));
+        geo.setAttribute('random', new THREE.BufferAttribute(rnd, 3));
+        const mat = new THREE.ShaderMaterial({
+            uniforms: { time: { value: 0 } },
+            vertexShader: `
+                uniform float time;
+                attribute float size;
+                attribute vec3 random;
+                varying float vRnd;
+                void main() {
+                    vRnd = random.z;
+                    vec3 p = position;
+                    float t = time * 0.25 * random.z;
+                    float ax = t + random.y, ay = t * 0.75 + random.x;
+                    float amp = (0.6 + sin(random.x + t * 0.6) * 0.3) * random.z;
+                    p.x += sin(ax + p.y * 0.06 + random.x * 0.1) * amp;
+                    p.y += cos(ay + p.z * 0.06 + random.y * 0.1) * amp;
+                    p.z += sin(ax * 0.85 + p.x * 0.06 + random.z * 0.1) * amp;
+                    vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+                    gl_PointSize = size * (300.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }`,
+            fragmentShader: `
+                uniform float time;
+                varying float vRnd;
+                void main() {
+                    float flicker = sin((time * 2.5 * vRnd) + vRnd * 6.28);
+                    flicker = pow(flicker, 2.0);
+                    flicker = smoothstep(0.7, 1.0, flicker);
+                    float d = length(gl_PointCoord - vec2(0.5));
+                    float alpha = 1.0 - smoothstep(0.4, 0.5, d);
+                    alpha *= (0.5 + flicker * 0.5);
+                    if (alpha < 0.01) discard;
+                    vec3 color = mix(vec3(0.7, 0.8, 1.0), vec3(1.0, 1.0, 1.0), flicker);
+                    gl_FragColor = vec4(color, alpha);
+                }`,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+        return new THREE.Points(geo, mat);
+    }
+
+    function init() {
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050203, 0.012);
+
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2500);
+        camera.position.set(0, 0, 90);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById("container").appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 20;
+        controls.maxDistance = 250;
+        controls.target.set(0, 0, 0);
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.enablePan = false;
+        controls.touches = {
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN
+        };
+
+        const loader = new FontLoader();
+        loader.load('https://cdn.jsdelivr.net/npm/three@0.168.0/examples/fonts/helvetiker_regular.typeface.json', function (loadedFont) {
+            font = loadedFont;
+
+            stars = createStars();
+            scene.add(stars);
+
+            const palette = [0xff61a6, 0xff005e, 0xff9933, 0xffee55, 0xffffff].map(c => new THREE.Color(c));
+            particles = makeParticles(PARTICLE_COUNT, palette);
+            sparkles = createSparkles(SPARK_COUNT);
+            scene.add(particles);
+            scene.add(sparkles);
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(new RenderPass(scene, camera));
+            composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.25, 0.4, 0.85));
+            const after = new AfterimagePass();
+            after.uniforms.damp.value = 0.92;
+            composer.addPass(after);
+            composer.addPass(new OutputPass());
+
+            setPattern(currentPattern, 0);
+
+            document.getElementById('morphButton').addEventListener('click', () => {
+                if (!isTrans) {
+                    beginMorph();
+                }
+            });
+            document.getElementById('morphButton').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!isTrans) {
+                    beginMorph();
+                }
+            }, { passive: false });
+
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loadingScreen');
+                loadingScreen.classList.add('hidden');
+                setTimeout(() => loadingScreen.style.display = 'none', 500);
+            }, 1000);
+
+            animate();
+        }, undefined, () => {
+            console.error('Font loading failed');
+            const loadingScreen = document.getElementById('loadingScreen');
+            loadingScreen.innerHTML = '<span>Failed to load resources. Please refresh.</span>';
+        });
+
+        let lastWidth = window.innerWidth, lastHeight = window.innerHeight;
+        window.addEventListener("resize", () => {
+            if (Math.abs(window.innerWidth - lastWidth) > 10 || Math.abs(window.innerHeight - lastHeight) > 10) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                composer.setSize(window.innerWidth, window.innerHeight);
+                lastWidth = window.innerWidth;
+                lastHeight = window.innerHeight;
+            }
+        }, { passive: true });
+
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                composer.setSize(window.innerWidth, window.innerHeight);
+            }, 100);
+        }, { passive: true });
+    }
+
+    function setPattern(i, time) {
+        const pts = PATTERNS[i](PARTICLE_COUNT, time);
+        basePositions = pts;
+        const particleArr = particles.geometry.attributes.position.array;
+        const sparkleArr = sparkles.geometry.attributes.position.array;
+
+        for (let j = 0; j < PARTICLE_COUNT; j++) {
+            const idx = j * 3;
+            const p = pts[j] || new THREE.Vector3();
+            particleArr[idx] = p.x;
+            particleArr[idx + 1] = p.y;
+            particleArr[idx + 2] = p.z;
+            if (j < SPARK_COUNT) {
+                sparkleArr[idx] = p.x;
+                sparkleArr[idx + 1] = p.y;
+                sparkleArr[idx + 2] = p.z;
+            }
+        }
+        particles.geometry.attributes.position.needsUpdate = true;
+        sparkles.geometry.attributes.position.needsUpdate = true;
+    }
+
+    function beginMorph() {
+        isTrans = true;
+        prog = 0;
+        const next = (currentPattern + 1) % PATTERNS.length;
+        const fromPts = particles.geometry.attributes.position.array.slice();
+        const toPts = PATTERNS[next](PARTICLE_COUNT, clock.getElapsedTime());
+
+        const to = new Float32Array(PARTICLE_COUNT * 3);
+        if (toPts.length > 0) {
+            for (let j = 0; j < PARTICLE_COUNT; j++) {
+                const idx = j * 3, p = toPts[j] || new THREE.Vector3();
+                to[idx] = p.x; to[idx + 1] = p.y; to[idx + 2] = p.z;
+            }
+            particles.userData = { from: fromPts, to, next };
+            sparkles.userData = { from: fromPts, to, next };
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const dt = clock.getDelta(), t = clock.getElapsedTime();
+
+        controls.update();
+
+        if (particles) particles.material.uniforms.time.value = t;
+        if (sparkles) sparkles.material.uniforms.time.value = t;
+
+        if (isTrans) {
+            prog += morphSpeed;
+            const eased = prog >= 1 ? 1 : 1 - Math.pow(1 - prog, 3);
+            const { from, to, next } = particles.userData;
+
+            const animatedToPts = PATTERNS[next](PARTICLE_COUNT, t);
+
+            if (to) {
+                const particleArr = particles.geometry.attributes.position.array;
+                const sparkleArr = sparkles.geometry.attributes.position.array;
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    const idx = i * 3;
+                    const pTo = animatedToPts[i] || new THREE.Vector3();
+
+                    const pFinalX = from[idx] + (pTo.x - from[idx]) * eased;
+                    const pFinalY = from[idx + 1] + (pTo.y - from[idx + 1]) * eased;
+                    const pFinalZ = from[idx + 2] + (pTo.z - from[idx + 2]) * eased;
+
+                    particleArr[idx] = pFinalX;
+                    particleArr[idx + 1] = pFinalY;
+                    particleArr[idx + 2] = pFinalZ;
+
+                    if (i < SPARK_COUNT) {
+                        sparkleArr[idx] = pFinalX;
+                        sparkleArr[idx + 1] = pFinalY;
+                        sparkleArr[idx + 2] = pFinalZ;
+                    }
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+                sparkles.geometry.attributes.position.needsUpdate = true;
+            }
+            if (prog >= 1) {
+                currentPattern = next;
+                isTrans = false;
+            }
+        } else if (particles) {
+            setPattern(currentPattern, t);
+        }
+
+        if (composer) {
+            composer.render(dt);
+        }
+    }
+
+    init();
+    </script>
 </body>
 </html>
